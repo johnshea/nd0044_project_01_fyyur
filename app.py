@@ -28,6 +28,11 @@ migrate = Migrate(app, db)
 # Models.
 #----------------------------------------------------------------------------#
 
+venue_genre_association = db.Table("venue_genre_association",
+    db.Column("venue_id", db.Integer, db.ForeignKey("venues.id"), primary_key=True),
+    db.Column("genre_id", db.Integer, db.ForeignKey("genres.id"), primary_key=True)
+)
+
 class Venue(db.Model):
     __tablename__ = 'venues'
 
@@ -41,6 +46,7 @@ class Venue(db.Model):
     facebook_link = db.Column(db.String(120))
     seeking_talent = db.Column(db.Boolean, default=False)
     seeking_description = db.Column(db.String())
+    genres = db.relationship("Genre", secondary=venue_genre_association, backref=db.backref("venues", lazy=True))
 
     # TODO: implement any missing fields, as a database migration using Flask-Migrate
 
