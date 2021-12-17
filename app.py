@@ -49,6 +49,9 @@ class Venue(db.Model):
     genres = db.relationship("Genre", secondary=venue_genre_association, backref=db.backref("venues", lazy=True))
     website = db.Column(db.String(120))
 
+    def __repr__(self):
+      return f'<Venue id={self.id}, name=\'{self.name}\'>'
+
     # TODO: implement any missing fields, as a database migration using Flask-Migrate
 
 artist_genre_association = db.Table("artist_genre_association",
@@ -71,6 +74,9 @@ class Artist(db.Model):
     seeking_description = db.Column(db.String())
     website = db.Column(db.String(120))
 
+    def __repr__(self):
+      return f'<Artist id={self.id}, name=\'{self.name}\'>'
+
     # TODO: implement any missing fields, as a database migration using Flask-Migrate
 
 class Genre(db.Model):
@@ -78,6 +84,9 @@ class Genre(db.Model):
 
     id = db.Column(db.Integer, primary_key=True)
     name = db.Column(db.String(), nullable=False, unique=True)
+
+    def __repr__(self):
+      return f'<Genre id={self.id}, name=\'{self.name}\'>'
 
 # TODO Implement Show and Artist models, and complete all model relationships and properties, as a database migration.
 
