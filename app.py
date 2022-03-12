@@ -331,26 +331,113 @@ def show_artist(artist_id):
 @app.route('/artists/<int:artist_id>/edit', methods=['GET'])
 def edit_artist(artist_id):
   form = ArtistForm()
-  artist={
-    "id": 4,
-    "name": "Guns N Petals",
-    "genres": ["Rock n Roll"],
-    "city": "San Francisco",
-    "state": "CA",
-    "phone": "326-123-5000",
-    "website": "https://www.gunsnpetalsband.com",
-    "facebook_link": "https://www.facebook.com/GunsNPetals",
-    "seeking_venue": True,
-    "seeking_description": "Looking for shows to perform at in the San Francisco Bay Area!",
-    "image_link": "https://images.unsplash.com/photo-1549213783-8284d0336c4f?ixlib=rb-1.2.1&ixid=eyJhcHBfaWQiOjEyMDd9&auto=format&fit=crop&w=300&q=80"
-  }
-  # TODO: populate form with fields from artist with ID <artist_id>
+
+  data_artist = Artist.query.get(artist_id)
+
+  if not data_artist:
+    abort(404)
+
+  artist = {
+    "id": data_artist.id,
+    "name": data_artist.name
+  }  
+
+  if data_artist.name:
+    form.name.data = data_artist.name
+
+  if data_artist.city:
+    form.city.data = data_artist.city
+
+  if data_artist.state:
+    form.state.data = data_artist.state
+
+  if data_artist.phone:
+    form.phone.data = data_artist.phone
+
+  if data_artist.image_link:
+    form.image_link.data = data_artist.image_link
+
+  if data_artist.facebook_link:
+    form.facebook_link.data = data_artist.facebook_link
+
+  if data_artist.seeking_venue:
+    form.seeking_venue.data = True
+
+  if data_artist.seeking_description:
+    form.seeking_description.data = data_artist.seeking_description
+
+  data_genres = []
+  for genre in data_artist.genres:
+    data_genres.append(genre.name)
+
+  if data_genres:
+    form.genres.data = data_genres
+
+  if data_artist.website:
+    form.website_link.data = data_artist.website
+
   return render_template('forms/edit_artist.html', form=form, artist=artist)
 
 @app.route('/artists/<int:artist_id>/edit', methods=['POST'])
 def edit_artist_submission(artist_id):
-  # TODO: take values from the form submitted, and update existing
-  # artist record with ID <artist_id> using the new attributes
+  data = request.form
+
+  artist = Artist.query.get(artist_id)
+
+  if not artist:
+    abort(404)
+
+  try:
+    if data.get('name'):
+      artist.name = data.get('name')
+
+    if data.get('city'):
+      artist.city = data.get('city')
+
+    if data.get('state'):
+      artist.state = data.get('state')
+
+    if data.get('phone'):
+      artist.phone = data.get('phone')
+
+    if data.get('image_link'):
+      artist.image_link = data.get('image_link')
+
+    if data.get('facebook_link'):
+      artist.facebook_link = data.get('facebook_link')
+
+    if data.get('seeking_venue'):
+      artist.seeking_venue = True
+    else:
+      artist.seeking_venue = False
+
+    if data.get('seeking_description'):
+      artist.seeking_description = data.get('seeking_description')
+
+    new_genre_list = []
+    if data.getlist('genres'):
+      for item in data.getlist('genres'):
+        new_genre = Genre.query.filter(Genre.name==item).first()
+        if new_genre:
+          new_genre_list.append(new_genre)
+    
+    artist.genres = new_genre_list
+
+    if data.get('website_link'):
+      artist.website = data.get('website_link')
+
+    db.session.commit()
+
+    # on successful db update, flash success
+    flash('Artist "' + request.form['name'] + '" was successfully updated!', 'alert-success')
+
+  except:
+    db.session.rollback()
+
+    # on unsuccessful db update, flash an error instead.
+    flash('An error occurred. Artist "' + request.form['name'] + '" could not be updated.', 'alert-danger')
+  finally:
+    db.session.close()
 
   return redirect(url_for('show_artist', artist_id=artist_id))
 
