@@ -396,13 +396,58 @@ def create_artist_form():
 @app.route('/artists/create', methods=['POST'])
 def create_artist_submission():
   # called upon submitting the new artist listing form
-  # TODO: insert form data as a new Venue record in the db, instead
-  # TODO: modify data to be the data object returned from db insertion
 
-  # on successful db insert, flash success
-  flash('Artist ' + request.form['name'] + ' was successfully listed!')
-  # TODO: on unsuccessful db insert, flash an error instead.
-  # e.g., flash('An error occurred. Artist ' + data.name + ' could not be listed.')
+  try:
+
+    data = request.form
+    new_artist = Artist()
+
+    if data.get('name'):
+      new_artist.name = data.get('name')
+
+    if data.get('city'):
+      new_artist.city = data.get('city')
+
+    if data.get('state'):
+      new_artist.state = data.get('state')
+
+    if data.get('phone'):
+      new_artist.phone = data.get('phone')
+
+    if data.get('image_link'):
+      new_artist.image_link = data.get('image_link')
+
+    if data.get('facebook_link'):
+      new_artist.facebook_link = data.get('facebook_link')
+
+    if data.get('seeking_venue'):
+      new_artist.seeking_venue = True
+
+    if data.get('seeking_description'):
+      new_artist.seeking_description = data.get('seeking_description')
+
+    if data.getlist('genres'):
+      for item in data.getlist('genres'):
+        new_genre = Genre.query.filter(Genre.name==item).first()
+        if new_genre:
+          new_artist.genres.append(new_genre)
+
+    if data.get('website_link'):
+      new_artist.website = data.get('website_link')
+  
+    db.session.commit()
+
+    # on successful db insert, flash success
+    flash('Artist "' + request.form['name'] + '" was successfully listed!', 'alert-success')
+
+  except:
+    db.session.rollback()
+
+    # on unsuccessful db insert, flash an error instead.
+    flash('An error occurred. Artist "' + request.form['name'] + '" could not be listed.', 'alert-danger')
+  finally:
+    db.session.close()
+
   return render_template('pages/home.html')
 
 
