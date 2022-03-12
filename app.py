@@ -247,6 +247,7 @@ def create_venue_submission():
     if data.get('website_link'):
       new_venue.website = data.get('website_link')
   
+    db.session.add(new_venue)
     db.session.commit()
 
     # on successful db insert, flash success
@@ -435,6 +436,7 @@ def create_artist_submission():
     if data.get('website_link'):
       new_artist.website = data.get('website_link')
   
+    db.session.add(new_artist)
     db.session.commit()
 
     # on successful db insert, flash success
