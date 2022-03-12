@@ -205,14 +205,60 @@ def create_venue_form():
 
 @app.route('/venues/create', methods=['POST'])
 def create_venue_submission():
-  # TODO: insert form data as a new Venue record in the db, instead
-  # TODO: modify data to be the data object returned from db insertion
 
-  # on successful db insert, flash success
-  flash('Venue ' + request.form['name'] + ' was successfully listed!')
-  # TODO: on unsuccessful db insert, flash an error instead.
-  # e.g., flash('An error occurred. Venue ' + data.name + ' could not be listed.')
-  # see: http://flask.pocoo.org/docs/1.0/patterns/flashing/
+  try:
+
+    data = request.form
+    new_venue = Venue()
+
+    if data.get('name'):
+      new_venue.name = data.get('name')
+
+    if data.get('city'):
+      new_venue.city = data.get('city')
+
+    if data.get('state'):
+      new_venue.state = data.get('state')
+
+    if data.get('address'):
+      new_venue.address = data.get('address')
+
+    if data.get('phone'):
+      new_venue.phone = data.get('phone')
+
+    if data.get('image_link'):
+      new_venue.image_link = data.get('image_link')
+
+    if data.get('facebook_link'):
+      new_venue.facebook_link = data.get('facebook_link')
+
+    if data.get('seeking_talent'):
+      new_venue.seeking_talent = True
+
+    if data.get('seeking_description'):
+      new_venue.seeking_description = data.get('seeking_description')
+
+    if data.getlist('genres'):
+      for item in data.getlist('genres'):
+        new_genre = Genre.query.filter(Genre.name==item).first()
+        if new_genre:
+          new_venue.genres.append(new_genre)
+
+    if data.get('website_link'):
+      new_venue.website = data.get('website_link')
+  
+    db.session.commit()
+
+    # on successful db insert, flash success
+    flash('Venue "' + request.form['name'] + '" was successfully listed!', 'alert-success')
+
+  except:
+    # on unsuccessful db insert, flash an error instead.
+    flash('An error occurred. Venue "' + request.form['name'] + '" could not be listed.', 'alert-danger')
+    db.session.rollback()
+  finally:
+    db.session.close()
+
   return render_template('pages/home.html')
 
 @app.route('/venues/<venue_id>', methods=['DELETE'])
