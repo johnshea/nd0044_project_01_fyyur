@@ -160,9 +160,17 @@ def show_venue(venue_id):
   if not data_venue:
     abort(404)
 
-  data_past_shows = db.session.query(Artist.id.label('artist_id'),Artist.name.label('artist_name'),Artist.image_link.label('artist_image_link'),Show.start_time).filter(Venue.id==Show.venue_id).filter(Show.artist_id==Artist.id).filter(Venue.id==venue_id).filter(Show.start_time < datetime.datetime.now()).all()
-  data_upcoming_shows = db.session.query(Artist.id.label('artist_id'),Artist.name.label('artist_name'),Artist.image_link.label('artist_image_link'),Show.start_time).filter(Venue.id==Show.venue_id).filter(Show.artist_id==Artist.id).filter(Venue.id==venue_id).filter(Show.start_time >= datetime.datetime.now()).all()
- 
+  shows_query = db.session \
+    .query(Artist.id.label('artist_id'),Artist.name.label('artist_name'),Artist.image_link.label('artist_image_link'),Show.start_time) \
+    .join(Show) \
+    .join(Venue) \
+    .filter(Venue.id==venue_id) \
+    .order_by(Show.start_time)
+  
+  data_past_shows = shows_query.filter(Show.start_time < datetime.datetime.now()).all()
+
+  data_upcoming_shows = shows_query.filter(Show.start_time >= datetime.datetime.now()).all()
+
   data_genres = []
   for genre in data_venue.genres:
     data_genres.append(genre.name)
