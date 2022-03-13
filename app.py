@@ -65,7 +65,6 @@ class Venue(db.Model):
     def __repr__(self):
       return f'<Venue id={self.id}, name=\'{self.name}\'>'
 
-    # TODO: implement any missing fields, as a database migration using Flask-Migrate
 
 artist_genre_association = db.Table("artist_genre_association",
     db.Column("artist_id", db.Integer, db.ForeignKey("artists.id"), primary_key=True),
@@ -92,7 +91,6 @@ class Artist(db.Model):
     def __repr__(self):
       return f'<Artist id={self.id}, name=\'{self.name}\'>'
 
-    # TODO: implement any missing fields, as a database migration using Flask-Migrate
 
 class Genre(db.Model):
     __tablename__ = "genres"
@@ -103,7 +101,6 @@ class Genre(db.Model):
     def __repr__(self):
       return f'<Genre id={self.id}, name=\'{self.name}\'>'
 
-# TODO Implement Show and Artist models, and complete all model relationships and properties, as a database migration.
 
 #----------------------------------------------------------------------------#
 # Filters.
