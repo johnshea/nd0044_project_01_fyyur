@@ -213,6 +213,11 @@ def create_venue_submission():
 
   try:
 
+    form = VenueForm(meta={'csrf': False})
+
+    if not form.validate():
+      raise Exception('Form field failed validation')
+
     data = request.form
     new_venue = Venue()
 
@@ -258,7 +263,7 @@ def create_venue_submission():
     # on successful db insert, flash success
     flash('Venue "' + request.form['name'] + '" was successfully listed!', 'alert-success')
 
-  except:
+  except Exception as e:
     # on unsuccessful db insert, flash an error instead.
     flash('An error occurred. Venue "' + request.form['name'] + '" could not be listed.', 'alert-danger')
     db.session.rollback()
@@ -348,41 +353,18 @@ def show_artist(artist_id):
 #  ----------------------------------------------------------------
 @app.route('/artists/<int:artist_id>/edit', methods=['GET'])
 def edit_artist(artist_id):
-  form = ArtistForm()
 
   data_artist = Artist.query.get(artist_id)
 
   if not data_artist:
     abort(404)
 
+  form = ArtistForm(obj=data_artist)
+  
   artist = {
     "id": data_artist.id,
     "name": data_artist.name
   }  
-
-  if data_artist.name:
-    form.name.data = data_artist.name
-
-  if data_artist.city:
-    form.city.data = data_artist.city
-
-  if data_artist.state:
-    form.state.data = data_artist.state
-
-  if data_artist.phone:
-    form.phone.data = data_artist.phone
-
-  if data_artist.image_link:
-    form.image_link.data = data_artist.image_link
-
-  if data_artist.facebook_link:
-    form.facebook_link.data = data_artist.facebook_link
-
-  if data_artist.seeking_venue:
-    form.seeking_venue.data = True
-
-  if data_artist.seeking_description:
-    form.seeking_description.data = data_artist.seeking_description
 
   data_genres = []
   for genre in data_artist.genres:
@@ -391,14 +373,10 @@ def edit_artist(artist_id):
   if data_genres:
     form.genres.data = data_genres
 
-  if data_artist.website:
-    form.website_link.data = data_artist.website
-
   return render_template('forms/edit_artist.html', form=form, artist=artist)
 
 @app.route('/artists/<int:artist_id>/edit', methods=['POST'])
 def edit_artist_submission(artist_id):
-  data = request.form
 
   artist = Artist.query.get(artist_id)
 
@@ -406,50 +384,44 @@ def edit_artist_submission(artist_id):
     abort(404)
 
   try:
-    if data.get('name'):
-      artist.name = data.get('name')
+    form = ArtistForm(obj=artist, meta={'csrf': False})
 
-    if data.get('city'):
-      artist.city = data.get('city')
+    if not form.validate():
+      raise Exception('Form field failed validation')
 
-    if data.get('state'):
-      artist.state = data.get('state')
+    artist.name = form.name.data
 
-    if data.get('phone'):
-      artist.phone = data.get('phone')
+    artist.city = form.city.data
 
-    if data.get('image_link'):
-      artist.image_link = data.get('image_link')
+    artist.state = form.state.data
 
-    if data.get('facebook_link'):
-      artist.facebook_link = data.get('facebook_link')
+    artist.phone = form.phone.data
 
-    if data.get('seeking_venue'):
-      artist.seeking_venue = True
-    else:
-      artist.seeking_venue = False
+    artist.image_link = form.image_link.data
 
-    if data.get('seeking_description'):
-      artist.seeking_description = data.get('seeking_description')
+    artist.facebook_link = form.facebook_link.data
+
+    artist.seeking_venue = form.seeking_venue.data
+
+    artist.seeking_description = form.seeking_description.data
 
     new_genre_list = []
-    if data.getlist('genres'):
-      for item in data.getlist('genres'):
+    if form.genres.data:
+      for item in form.genres.data:
         new_genre = Genre.query.filter(Genre.name==item).first()
         if new_genre:
           new_genre_list.append(new_genre)
     
     artist.genres = new_genre_list
 
-    if data.get('website_link'):
-      artist.website = data.get('website_link')
+    artist.website = form.website_link.data
 
     db.session.commit()
 
     # on successful db update, flash success
     flash('Artist "' + request.form['name'] + '" was successfully updated!', 'alert-success')
 
-  except:
+  except Exception as e:
     db.session.rollback()
 
     # on unsuccessful db update, flash an error instead.
@@ -461,44 +433,17 @@ def edit_artist_submission(artist_id):
 
 @app.route('/venues/<int:venue_id>/edit', methods=['GET'])
 def edit_venue(venue_id):
-  form = VenueForm()
-
   data_venue = Venue.query.get(venue_id)
 
   if not data_venue:
     abort(404)
 
+  form = VenueForm(obj=data_venue)
+
   venue = {
     "id": data_venue.id,
     "name": data_venue.name
   }  
-
-  if data_venue.name:
-    form.name.data = data_venue.name
-
-  if data_venue.city:
-    form.city.data = data_venue.city
-
-  if data_venue.state:
-    form.state.data = data_venue.state
-
-  if data_venue.address:
-    form.address.data = data_venue.address
-
-  if data_venue.phone:
-    form.phone.data = data_venue.phone
-
-  if data_venue.image_link:
-    form.image_link.data = data_venue.image_link
-
-  if data_venue.facebook_link:
-    form.facebook_link.data = data_venue.facebook_link
-
-  if data_venue.seeking_talent:
-    form.seeking_talent.data = True
-
-  if data_venue.seeking_description:
-    form.seeking_description.data = data_venue.seeking_description
 
   data_genres = []
   for genre in data_venue.genres:
@@ -507,14 +452,10 @@ def edit_venue(venue_id):
   if data_genres:
     form.genres.data = data_genres
 
-  if data_venue.website:
-    form.website_link.data = data_venue.website
-
   return render_template('forms/edit_venue.html', form=form, venue=venue)
 
 @app.route('/venues/<int:venue_id>/edit', methods=['POST'])
 def edit_venue_submission(venue_id):
-  data = request.form
 
   venue = Venue.query.get(venue_id)
 
@@ -522,46 +463,39 @@ def edit_venue_submission(venue_id):
     abort(404)
 
   try:
-    if data.get('name'):
-      venue.name = data.get('name')
+    form = VenueForm(obj=venue, meta={'csrf': False})
 
-    if data.get('city'):
-      venue.city = data.get('city')
+    if not form.validate():
+      raise Exception('Form field failed validation')
 
-    if data.get('state'):
-      venue.state = data.get('state')
+    venue.name = form.name.data
 
-    if data.get('address'):
-      venue.address = data.get('address')
+    venue.city = form.city.data
 
-    if data.get('phone'):
-      venue.phone = data.get('phone')
+    venue.state = form.state.data
 
-    if data.get('image_link'):
-      venue.image_link = data.get('image_link')
+    venue.address = form.address.data
 
-    if data.get('facebook_link'):
-      venue.facebook_link = data.get('facebook_link')
+    venue.phone = form.phone.data
 
-    if data.get('seeking_talent'):
-      venue.seeking_talent = True
-    else:
-      venue.seeking_talent = False
+    venue.image_link = form.image_link.data
 
-    if data.get('seeking_description'):
-      venue.seeking_description = data.get('seeking_description')
+    venue.facebook_link = form.facebook_link.data
+
+    venue.seeking_talent = form.seeking_talent.data
+
+    venue.seeking_description = form.seeking_description.data
 
     new_genre_list = []
-    if data.getlist('genres'):
-      for item in data.getlist('genres'):
+    if form.genres.data:
+      for item in form.genres.data:
         new_genre = Genre.query.filter(Genre.name==item).first()
         if new_genre:
           new_genre_list.append(new_genre)
     
     venue.genres = new_genre_list
 
-    if data.get('website_link'):
-      venue.website = data.get('website_link')
+    venue.website = form.website_link.data
 
     db.session.commit()
 
@@ -592,41 +526,36 @@ def create_artist_submission():
 
   try:
 
-    data = request.form
+    form = ArtistForm(meta={'csrf': False})
+
+    if not form.validate():
+      raise Exception('Form field failed validation')
+
     new_artist = Artist()
 
-    if data.get('name'):
-      new_artist.name = data.get('name')
+    new_artist.name = form.name.data
 
-    if data.get('city'):
-      new_artist.city = data.get('city')
+    new_artist.city = form.city.data
 
-    if data.get('state'):
-      new_artist.state = data.get('state')
+    new_artist.state = form.state.data
 
-    if data.get('phone'):
-      new_artist.phone = data.get('phone')
+    new_artist.phone = form.phone.data
 
-    if data.get('image_link'):
-      new_artist.image_link = data.get('image_link')
+    new_artist.image_link = form.image_link.data
 
-    if data.get('facebook_link'):
-      new_artist.facebook_link = data.get('facebook_link')
+    new_artist.facebook_link = form.facebook_link.data
 
-    if data.get('seeking_venue'):
-      new_artist.seeking_venue = True
+    new_artist.seeking_venue = form.seeking_venue.data
 
-    if data.get('seeking_description'):
-      new_artist.seeking_description = data.get('seeking_description')
+    new_artist.seeking_description = form.seeking_description.data
 
-    if data.getlist('genres'):
-      for item in data.getlist('genres'):
+    if form.genres.data:
+      for item in form.genres.data:
         new_genre = Genre.query.filter(Genre.name==item).first()
         if new_genre:
           new_artist.genres.append(new_genre)
 
-    if data.get('website_link'):
-      new_artist.website = data.get('website_link')
+    new_artist.website = form.website_link.data
   
     db.session.add(new_artist)
     db.session.commit()
@@ -665,18 +594,18 @@ def create_show_submission():
   # called to create new shows in the db, upon submitting new show listing form
   try:
 
-    data = request.form
+    form = ShowForm(meta={'csrf': False})
+
+    if not form.validate():
+      raise Exception('Form field failed validation')
 
     new_show = Show()
 
-    if data.get('artist_id'):
-      new_show.artist_id = data.get('artist_id')
+    new_show.artist_id = form.artist_id.data
 
-    if data.get('venue_id'):
-      new_show.venue_id = data.get('venue_id')
+    new_show.venue_id = form.venue_id.data
 
-    if data.get('start_time'):
-      new_show.start_time = data.get('start_time')
+    new_show.start_time = form.start_time.data
 
     db.session.add(new_show)
     db.session.commit()
